@@ -9,7 +9,12 @@
   },
   "dependencies": {
     "core-js": "^3.8.3",
-    "vue": "^3.2.13"
+    "vue": "^3.2.13",
+    "bootstrap": "^5.3.6",
+    "bootstrap-vue-3": "^0.5.1",
+    "chart.js": "^4.4.9",
+    "student-task-tracker-system": "file:",
+    "vue-chartjs": "^5.3.2"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",
@@ -30,7 +35,8 @@
       "eslint:recommended"
     ],
     "parserOptions": {
-      "parser": "@babel/eslint-parser"
+      "parser": "@babel/eslint-parser",
+      "requireConfigFile": false
     },
     "rules": {}
   },
