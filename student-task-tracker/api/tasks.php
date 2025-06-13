@@ -24,10 +24,19 @@ $task_id = isset($path_parts[2]) ? $path_parts[2] : null;
 // Handle different HTTP methods
 switch ($method) {
     case 'GET':
-        if ($task_id) {
-            // TODO: Get a single task
-  
+       if ($task_id) {
+            // Get a single task
+            $stmt = $conn->prepare("SELECT * FROM tasks WHERE id = ?");
+            $stmt->execute([$task_id]);
+            $task = $stmt->fetch(PDO::FETCH_ASSOC);
             
+            if ($task) {
+                echo json_encode($task);
+            } else {
+                http_response_code(404);
+                echo json_encode(['error' => 'Task not found']);
+            }
+        
         } else {
             // TODO: Get all tasks
 
