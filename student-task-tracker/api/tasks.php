@@ -51,8 +51,38 @@ switch ($method) {
 
 
     case 'PUT':
-        //TODO: Update an existing task
+        // Update an existing task
+        if (!$task_id) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Task ID is required']);
+            break;
+        }
 
+        $data = json_decode(file_get_contents('php://input'), true);
+        
+        if (!isset($data['title']) || !isset($data['description']) || !isset($data['dueDate']) || !isset($data['status'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Missing required fields']);
+            break;
+        }
+
+        $stmt = $conn->prepare("UPDATE tasks SET title = ?, description = ?, dueDate = ?, status = ? WHERE id = ?");
+        $stmt->execute([
+            $data['title'],
+            $data['description'],
+            $data['dueDate'],
+            $data['status'],
+            $task_id
+        ]);
+
+        if ($stmt->rowCount() > 0) {
+            $data['id'] = $task_id;
+            echo json_encode($data);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Task not found']);
+        }
+        break;
 
     case 'DELETE':
         //Delete a task
