@@ -47,8 +47,27 @@ switch ($method) {
         break;
 
     case 'POST':
-        // TODO: Create a new task
+        // Create a new task
+        $data = json_decode(file_get_contents('php://input'), true);
+        
+        if (!isset($data['title']) || !isset($data['description']) || !isset($data['dueDate']) || !isset($data['status'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Missing required fields']);
+            break;
+        }
 
+        $stmt = $conn->prepare("INSERT INTO tasks (title, description, dueDate, status) VALUES (?, ?, ?, ?)");
+        $stmt->execute([
+            $data['title'],
+            $data['description'],
+            $data['dueDate'],
+            $data['status']
+        ]);
+
+        $data['id'] = $conn->lastInsertId();
+        http_response_code(201);
+        echo json_encode($data);
+        break;
 
     case 'PUT':
         // Update an existing task
