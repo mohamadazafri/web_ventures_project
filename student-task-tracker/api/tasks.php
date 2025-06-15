@@ -52,7 +52,29 @@ switch ($method) {
 
 
     case 'DELETE':
-        // TODO: Delete a task
+        //Delete a task
+
+        if (!$task_id) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Task ID is required']);
+            break;
+        }
+
+        $stmt = $conn->prepare("DELETE FROM tasks WHERE id = ?");
+        $stmt->execute([$task_id]);
+
+        if ($stmt->rowCount() > 0) {
+            http_response_code(204);
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Task not found']);
+        }
+        break;
+
+    default:
+        http_response_code(405);
+        echo json_encode(['error' => 'Method not allowed']);
+        break;
 
 }
 ?> 
