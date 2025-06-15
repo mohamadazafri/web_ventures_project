@@ -39,6 +39,9 @@ switch ($method) {
         
         } else {
             // TODO: Get all tasks
+            $stmt = $conn->query("SELECT * FROM tasks ORDER BY dueDate DESC");
+            $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            echo json_encode($tasks);
 
         }
         break;
