@@ -146,6 +146,7 @@ import {
   LinearScale,
   BarElement,
 } from "chart.js";
+import { taskService } from "../services/api";
 
 // Register Chart.js components
 ChartJS.register(
@@ -167,7 +168,9 @@ export default {
   inject: ["router"],
   data() {
     return {
-      tasks: [], // Store all tasks
+      tasks: [], // Initialize as empty array
+      loading: false,
+      error: null,
       // Configuration for pie chart
       pieChartOptions: {
         responsive: true,
@@ -202,19 +205,25 @@ export default {
   computed: {
     // Calculate total number of tasks
     totalTasks() {
-      return this.tasks.length;
+      return Array.isArray(this.tasks) ? this.tasks.length : 0;
     },
     // Count completed tasks
     completedTasks() {
-      return this.tasks.filter((task) => task.status === "Completed").length;
+      return Array.isArray(this.tasks)
+        ? this.tasks.filter((task) => task.status === "Completed").length
+        : 0;
     },
     // Count pending tasks
     pendingTasks() {
-      return this.tasks.filter((task) => task.status === "Pending").length;
+      return Array.isArray(this.tasks)
+        ? this.tasks.filter((task) => task.status === "Pending").length
+        : 0;
     },
     // Count in-progress tasks
     inProgressTasks() {
-      return this.tasks.filter((task) => task.status === "In Progress").length;
+      return Array.isArray(this.tasks)
+        ? this.tasks.filter((task) => task.status === "In Progress").length
+        : 0;
     },
     // Calculate completion rate percentage
     completionRate() {
@@ -224,6 +233,8 @@ export default {
     },
     // Get upcoming deadlines for next 7 days
     upcomingDeadlines() {
+      if (!Array.isArray(this.tasks)) return [];
+
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       return this.tasks
@@ -241,6 +252,18 @@ export default {
     },
     // Data for status distribution pie chart
     statusChartData() {
+      if (!Array.isArray(this.tasks)) {
+        return {
+          labels: ["Pending", "In Progress", "Completed"],
+          datasets: [
+            {
+              backgroundColor: ["#ffc107", "#17a2b8", "#28a745"],
+              data: [0, 0, 0],
+            },
+          ],
+        };
+      }
+
       return {
         labels: ["Pending", "In Progress", "Completed"],
         datasets: [
@@ -257,6 +280,29 @@ export default {
     },
     // Data for weekly task distribution bar chart
     dueDateChartData() {
+      if (!Array.isArray(this.tasks)) {
+        return {
+          labels: [
+            "Today",
+            "Tomorrow",
+            "Day 3",
+            "Day 4",
+            "Day 5",
+            "Day 6",
+            "Day 7",
+          ],
+          datasets: [
+            {
+              label: "Tasks Due",
+              data: [0, 0, 0, 0, 0, 0, 0],
+              backgroundColor: "#007bff",
+              borderColor: "#0056b3",
+              borderWidth: 1,
+            },
+          ],
+        };
+      }
+
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
@@ -300,28 +346,22 @@ export default {
     },
   },
   methods: {
-    // Load tasks from localStorage
-    loadTasks() {
-      const tasksData = localStorage.getItem("tasks");
-      if (tasksData) {
-        try {
-          this.tasks = JSON.parse(tasksData);
-        } catch (e) {
-          console.error("Error parsing tasks:", e);
-          this.tasks = [];
-        }
-      } else {
+    async loadTasks() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await taskService.getAllTasks();
+        // Ensure tasks is always an array
+        this.tasks = Array.isArray(response.data) ? response.data : [];
+        console.log("Loaded tasks:", this.tasks);
+      } catch (error) {
+        this.error = "Failed to load tasks. Please try again later.";
+        console.error("Error loading tasks:", error);
+        // Set tasks to empty array on error
         this.tasks = [];
+      } finally {
+        this.loading = false;
       }
-    },
-    // Set up event listeners for task updates
-    setupEventListeners() {
-      window.addEventListener("taskUpdated", this.loadTasks);
-      window.addEventListener("storage", (e) => {
-        if (e.key === "tasks") {
-          this.loadTasks();
-        }
-      });
     },
     // Format date for display
     formatDate(date) {
@@ -377,23 +417,10 @@ export default {
       return "normal";
     },
   },
-  // Lifecycle hooks
-  created() {
-    // Load tasks when component is created
-    this.loadTasks();
-  },
   mounted() {
-    // Set up event listeners and start periodic refresh
-    this.setupEventListeners();
     this.loadTasks();
-    this.refreshInterval = setInterval(() => {
-      this.loadTasks();
-    }, 2000);
   },
   beforeUnmount() {
-    // Clean up event listeners and intervals
-    window.removeEventListener("taskUpdated", this.loadTasks);
-    window.removeEventListener("storage", this.loadTasks);
     if (this.refreshInterval) {
       clearInterval(this.refreshInterval);
     }
