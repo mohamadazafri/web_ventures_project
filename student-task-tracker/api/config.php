@@ -1,19 +1,25 @@
 <?php
+// CORS configuration
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+header('Access-Control-Max-Age: 86400'); // 24 hours
+header('Content-Type: application/json; charset=utf-8');
 // Database configuration
-define('DB_HOST', 'localhost');
+// define('DB_HOST', 'sql310.infinityfree.com');
+// define('DB_USER', 'if0_39387061');
+// define('DB_PASS', 'qrpt9781');
+// define('DB_NAME', 'if0_39387061_student_tracker_system');
+define('DB_HOST', 'shinkansen.proxy.rlwy.net');
 define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'student_task_tracker');
+define('DB_PASS', 'CGkuGHpkMQNaqJIDSekmXIGOngEQCHeo');
+define('DB_NAME', 'railway');
+define('DB_PORT', '24965');
 
 // API configuration
 define('API_VERSION', 'v1');
 define('API_URL', '/api/' . API_VERSION);
 
-// CORS configuration
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
-header('Content-Type: application/json');
 
 // Error reporting
 error_reporting(E_ALL);
@@ -23,7 +29,7 @@ ini_set('display_errors', 1);
 function getDBConnection() {
     try {
         $conn = new PDO(
-            "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME,
+            "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME,
             DB_USER,
             DB_PASS
         );

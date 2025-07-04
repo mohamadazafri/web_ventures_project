@@ -3,9 +3,15 @@ require_once 'config.php';
 
 // Handle preflight OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    // Send CORS headers for preflight request
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+    header('Access-Control-Max-Age: 86400'); // 24 hours
     http_response_code(200);
     exit();
 }
+
 
 // Get database connection
 $conn = getDBConnection();
@@ -24,7 +30,7 @@ $task_id = isset($path_parts[2]) ? $path_parts[2] : null;
 // Handle different HTTP methods
 switch ($method) {
     case 'GET':
-       if ($task_id) {
+        if ($task_id) {
             // Get a single task
             $stmt = $conn->prepare("SELECT * FROM tasks WHERE id = ?");
             $stmt->execute([$task_id]);
@@ -36,13 +42,11 @@ switch ($method) {
                 http_response_code(404);
                 echo json_encode(['error' => 'Task not found']);
             }
-        
         } else {
-            // TODO: Get all tasks
+            // Get all tasks
             $stmt = $conn->query("SELECT * FROM tasks ORDER BY dueDate DESC");
             $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
             echo json_encode($tasks);
-
         }
         break;
 
@@ -67,7 +71,7 @@ switch ($method) {
         $data['id'] = $conn->lastInsertId();
         http_response_code(201);
         echo json_encode($data);
-        break;
+        break;
 
     case 'PUT':
         // Update an existing task
@@ -104,8 +108,7 @@ switch ($method) {
         break;
 
     case 'DELETE':
-        //Delete a task
-
+        // Delete a task
         if (!$task_id) {
             http_response_code(400);
             echo json_encode(['error' => 'Task ID is required']);
@@ -127,6 +130,5 @@ switch ($method) {
         http_response_code(405);
         echo json_encode(['error' => 'Method not allowed']);
         break;
-
 }
 ?> 

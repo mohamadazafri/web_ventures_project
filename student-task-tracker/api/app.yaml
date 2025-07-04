@@ -1,0 +1,6 @@
+runtime: php84
+entrypoint: serve tasks.php
+
+handlers:
+  - url: /.*
+    script: auto
